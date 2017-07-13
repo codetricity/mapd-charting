@@ -1,6 +1,7 @@
 import capMixin from "./cap-mixin"
 import rasterLayerPointMixin from "./raster-layer-point-mixin"
 import rasterLayerPolyMixin from "./raster-layer-poly-mixin"
+import rasterLayerHeatmapMixin from "./raster-layer-heatmap-mixin"
 import {createRasterLayerGetterSetter, createVegaAttrMixin, notNull} from "../utils/utils-vega"
 
 const validLayerTypes = ["points", "polys"]
@@ -47,6 +48,8 @@ export default function rasterLayer (layerType) {
     _layer = rasterLayerPointMixin(_layer)
   } else if (layerType == "polys") {
     _layer = rasterLayerPolyMixin(_layer)
+  } else if (layerType == "heat") {
+    _layer = rasterLayerHeatmapMixin(_layer)
   } else {
     throw new Error("\"" + layerType + "\" is not a valid layer type. The valid layer types are: " + validLayerTypes.join(", "))
   }

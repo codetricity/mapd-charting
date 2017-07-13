@@ -30,6 +30,7 @@ function createCrossfilter (connector) {
 
 function createCharts (cf) {
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
+  const HeatLayer = dc.rasterLayer("heat")
 
   RasterChart
     .con(Connector)
@@ -39,6 +40,8 @@ function createCharts (cf) {
     .width(WIDTH)
     .mapUpdateInterval(UPDATE_INTERVAL)
     .mapStyle(MAP_STYLE)
+
+  RasterChart.pushLayer("heat", HeatLayer)
 
   return RasterChart.init()
 }

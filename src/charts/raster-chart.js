@@ -414,6 +414,7 @@ function genLayeredVega (chart) {
   const marks = []
 
   chart.getLayerNames().forEach((layerName) => {
+    console.log(chart.getLayer(layerName))
     const layerVega = chart.getLayer(layerName).genVega(chart, layerName)
 
     data.push(layerVega.data)

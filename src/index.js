@@ -2,8 +2,10 @@ require("../mapdc.css")
 require("../scss/chart.scss")
 require("mapbox-gl/dist/mapbox-gl.css")
 
-window.mapboxgl = require("mapbox-gl/dist/mapbox-gl.js");
-require("mapbox-gl/dist/mapboxgl-overrides.js")
+if (process.env.BABEL_ENV !== "test") {
+  window.mapboxgl = require("mapbox-gl/dist/mapbox-gl.js")
+  require("mapbox-gl/dist/mapboxgl-overrides.js")
+}
 
 require("./polyfills/inner-svg")
 require("./mixins/d3.box")
@@ -60,6 +62,7 @@ export {default as coordinateGridRasterMixin} from "./mixins/coordinate-grid-ras
 export {default as stackMixin} from "./mixins/stack-mixin"
 export {default as marginMixin} from "./mixins/margin-mixin"
 export {default as mapMixin} from "./mixins/map-mixin"
+export {default as rasterLayerHeatmapMixin} from "./mixins/raster-layer-heatmap-mixin"
 export {default as rasterLayerPointMixin} from "./mixins/raster-layer-point-mixin"
 export {default as rasterLayerPolyMixin} from "./mixins/raster-layer-poly-mixin"
 export {default as rasterLayer} from "./mixins/raster-layer"
