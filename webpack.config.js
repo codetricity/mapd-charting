@@ -29,6 +29,10 @@ module.exports = {
         loader: "babel-loader"
       },
       {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract("style", "css")
+      },
+      {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract("style", "css!sass")
       }
@@ -41,7 +45,7 @@ module.exports = {
       }
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
-    new ExtractTextPlugin("chart.css"),
+    new ExtractTextPlugin("mapdc.css"),
     new webpack.optimize.DedupePlugin(),
   ],
   resolve: {

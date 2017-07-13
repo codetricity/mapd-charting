@@ -26,6 +26,7 @@
   },
   "main": "src/index.js",
   "scripts": {
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel index.js --out-dir lib",
     "build": "webpack",
     "build:docs": "./node_modules/documentation/bin/documentation.js build src/** -f html -o docs",
     "build:example": "npm run clean:example && webpack && bash scripts/copy-example-libs.sh",
@@ -49,6 +50,7 @@
     "d3": "^3.5.17",
     "deep-equal": "1.0.1",
     "earcut": "^2.1.1",
+    "mapbox-gl": "https://github.com/mapd/mapbox-gl-js/tarball/9c04de6949fe498c8c79f5c0627dfd6d6321f307",
     "moment": "2.13.0",
     "ramda": "0.21.0",
     "simplify-js": "^1.2.1"
@@ -68,6 +70,7 @@
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
     "codecov": "^2.1.0",
+    "cross-env": "^5.0.1",
     "css-loader": "0.22.0",
     "documentation": "4.0.0-rc.1",
     "eslint": "^3.0.1",
@@ -88,9 +91,6 @@
     "selenium-standalone": "^6.4.1",
     "style-loader": "0.13.0",
     "webpack": "^1.13.1"
-  },
-  "peerDependencies": {
-    "mapbox-gl": "https://github.com/mapd/mapbox-gl-js/tarball/9c04de6949fe498c8c79f5c0627dfd6d6321f307"
   },
   "nyc": {
     "check-coverage": false,
