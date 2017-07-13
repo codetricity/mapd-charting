@@ -26,6 +26,7 @@
   },
   "main": "src/index.js",
   "scripts": {
+    "ex": "webpack-dev-server --content-base ./raster-heatmap-example",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel index.js --out-dir lib",
     "build": "webpack",
     "build:docs": "./node_modules/documentation/bin/documentation.js build src/** -f html -o docs",
@@ -71,13 +72,13 @@
     "chai-spies": "^0.7.1",
     "codecov": "^2.1.0",
     "cross-env": "^5.0.1",
-    "css-loader": "0.22.0",
+    "css-loader": "^0.22.0",
     "documentation": "4.0.0-rc.1",
     "eslint": "^3.0.1",
     "eslint-config-airbnb": "^3.1.0",
     "eslint-plugin-import": "1.16.0",
     "expose-loader": "^0.7.1",
-    "extract-text-webpack-plugin": "0.8.0",
+    "extract-text-webpack-plugin": "^3.0.0",
     "http-server": "^0.9.0",
     "jsdom": "3.1.2",
     "lodash": "4.3.0",
@@ -89,8 +90,10 @@
     "proxyquire": "1.7.4",
     "sass-loader": "3.1.2",
     "selenium-standalone": "^6.4.1",
-    "style-loader": "0.13.0",
-    "webpack": "^1.13.1"
+    "style-loader": "^0.13.0",
+    "uglifyjs-webpack-plugin": "^0.4.6",
+    "webpack": "^3.2.0",
+    "webpack-dev-server": "^2.5.1"
   },
   "nyc": {
     "check-coverage": false,
