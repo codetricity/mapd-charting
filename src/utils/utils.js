@@ -1,3 +1,4 @@
+import {createParser} from "mapd-data-layer"
 import {
   formatDataValue,
   maybeFormatInfinity
@@ -14,6 +15,22 @@ import deepEqual from "deep-equal"
 
 import d3 from "d3"
 import {constants} from "../core/core"
+
+export const parser = createParser()
+parser.registerParser({
+  meta: "transform",
+  type: "rect_pixel_bin"
+}, (sql, transform) => {
+  const from = sql.from
+  const x = transform.x.field
+  const y = transform.y.field
+  sql.select.push(`rect_pixel_bin(conv_4326_900913_x(${x}),(SELECT MIN(conv_4326_900913_x(${x})) from ${sql.from} WHERE ${sql.where}), (SELECT MAX(conv_4326_900913_x(${x})) from ${sql.from} WHERE ${sql.where}), ${transform.x.bins[0]}, ${transform.x.bins[1]}) as x`)
+  sql.select.push(`rect_pixel_bin(conv_4326_900913_y(${y}),(SELECT MIN(conv_4326_900913_y(${y})) from ${sql.from} WHERE ${sql.where}), (SELECT MAX(conv_4326_900913_y(${y})) from ${sql.from} WHERE ${sql.where}), ${transform.y.bins[0]}, ${transform.y.bins[1]}) as y`)
+  sql.select.push(`${transform.aggregate} as cnt`)
+  sql.groupby.push("x")
+  sql.groupby.push("y")
+  return sql
+})
 
 export const dateFormat = d3.time.format("%m/%d/%Y")
 

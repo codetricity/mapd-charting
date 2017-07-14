@@ -3,6 +3,7 @@ import rasterLayerPointMixin from "./raster-layer-point-mixin"
 import rasterLayerPolyMixin from "./raster-layer-poly-mixin"
 import rasterLayerHeatmapMixin from "./raster-layer-heatmap-mixin"
 import {createRasterLayerGetterSetter, createVegaAttrMixin, notNull} from "../utils/utils-vega"
+import {parser} from "../utils/utils"
 
 const validLayerTypes = ["points", "polys"]
 
@@ -174,11 +175,32 @@ export default function rasterLayer (layerType) {
     const group = _layer.group() || {}
     let query = ""
     if (group.type === "dimension") {
-            // it's actually a dimension
       query = group.writeTopQuery(cap, undefined, true)
     } else if (group.type === "group") {
-            // we're dealing with a group
       query = group.writeTopQuery(cap, undefined, false, true)
+    } else if (_layer.spec()) {
+      query = parser.writeSQL({
+        type: "root",
+        source: _layer.crossfilter().getTable()[0],
+        transform: [
+          {
+            type: "filter",
+            expr: _layer.crossfilter().getFilterString()
+          },
+          {
+            type: "rect_pixel_bin",
+            x: {
+              field: _layer.spec().x.field,
+              bins:  [_layer.spec().x.bins, chart.width()]
+            },
+            y: {
+              field: _layer.spec().y.field,
+              bins:  [_layer.spec().y.bins, chart.height()]
+            },
+            aggregate: _layer.spec().aggregate
+          }
+        ]
+      })
     }
 
     if (!query.length) {
@@ -187,6 +209,7 @@ export default function rasterLayer (layerType) {
 
         // TODO(croot): handle an opacity per layer?
     const vega = _layer._genVega(chart, layerName, group, query)
+    console.log(vega)
     return vega
   }
 

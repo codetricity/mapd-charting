@@ -1,7 +1,7 @@
 {
   "env": {
     "test": {
-      "presets": ["es2015", "stage-0"],
+      "presets": ["flow", "es2015", "stage-0"],
       "ignore": [
         "node_modules/mapbox-gl/dist/mapbox-gl.js"
       ],
@@ -15,7 +15,7 @@
       ]
     },
     "development": {
-      "presets": ["es2015", "stage-0"]
+      "presets": ["flow", "es2015", "stage-0"]
     }
   }
 }

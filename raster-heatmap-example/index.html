@@ -20,6 +20,14 @@
       font-weight: bold;
       color:  #45B1E8;
     }
+    #control {
+      margin: 25px;
+      width: 25%;
+      display: inline-block;
+    }
+    .map {
+      width: 50%
+    }
   </style>
   <title>Document</title>
 </head>
@@ -40,9 +48,14 @@
   </div>
   </nav>
   <div class="main-container">
-  <div class="col-xs-12">
+    <div class="col-xs-12" id="control">
+       Mark Size: <input id="size" type="range" min="0" max="50" value="25"><br>
+       X Num Bins: <input id="xbin" type="range" min="0" max="1200" value="25"><br>
+       Y Num Bins: <input id="ybin" type="range" min="0" max="645" value="25"><br>
+   </div>
+  <div class="col-xs-12 map">
    <div class="title">Raster Chart With Heatmap Layer</div>
    <div id="heatmap"></div>
-  </div>
+ </div>
 </body>
 </html>
