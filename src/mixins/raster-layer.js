@@ -171,7 +171,7 @@ export default function rasterLayer (layerType) {
       throw new Error("A cap for the layer " + layerName + " is undefined but a cap is required. Cannot create a query.")
     }
 
-    const group = _layer.group()
+    const group = _layer.group() || {}
     let query = ""
     if (group.type === "dimension") {
             // it's actually a dimension
@@ -182,7 +182,7 @@ export default function rasterLayer (layerType) {
     }
 
     if (!query.length) {
-      throw new Error("Crossfilter group/dimension did not provide a sql query string for layer " + layerName + "." + (groupType.length ? " Group type: " + (group.type || "unknown") + "." : ""))
+      // throw new Error("Crossfilter group/dimension did not provide a sql query string for layer " + layerName + "." + (groupType.length ? " Group type: " + (group.type || "unknown") + "." : ""))
     }
 
         // TODO(croot): handle an opacity per layer?

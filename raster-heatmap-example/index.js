@@ -12,6 +12,8 @@ const Connector = new MapdCon()
   .user("mapd")
   .password("HyperInteractive")
 
+Connector.logging(true)
+
 function connect () {
   return new Promise((resolve, reject) => {
     Connector.connect(function(error, connector) {
@@ -28,9 +30,21 @@ function createCrossfilter (connector) {
   return crossfilter.crossfilter(connector, TABLE)
 }
 
-function createCharts (cf) {
+function countWidget (cf) {
+  return dc.countWidget(".data-count")
+    .dimension(cf)
+    .group(cf.groupAll())
+}
+
+function rasterChart (cf) {
+  var xDim = cf.dimension("lon")
+  var yDim = cf.dimension("lat")
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
   const HeatLayer = dc.rasterLayer("heat")
+
+  HeatLayer
+    .xDim(xDim)
+    .yDim(yDim)
 
   RasterChart
     .con(Connector)
@@ -43,7 +57,17 @@ function createCharts (cf) {
 
   RasterChart.pushLayer("heat", HeatLayer)
 
-  return RasterChart.init()
+  return RasterChart
+}
+
+
+function createCharts (cf) {
+  const RasterChart = rasterChart(cf)
+  countWidget(cf)
+
+  return RasterChart
+    .init()
+    .then(dc.renderAllAsync)
 }
 
 document.addEventListener("DOMContentLoaded", function init() {
