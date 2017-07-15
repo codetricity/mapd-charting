@@ -1,34 +1,16 @@
 import {createRasterLayerGetterSetter} from "../utils/utils-vega"
 import {parser} from "../utils/utils"
+import R from "ramda"
 
-const getBinTransform = spec =>
-  spec.data.sql.transform.reduce((accum, t) => {
-    if (t.type === "rect_pixel_bin") {
-      accum = t
-    }
-    return accum
-  }, {})
+const sqlLense = R.lensPath(["data", "sql"])
+const transformLense = R.compose(sqlLense, R.lensProp("transform"))
 
-const setTransforms = transform => spec => ({
-  ...spec,
-  data: {
-    name: "heatmap_query",
-    sql: {
-      ...spec.data.sql,
-      transform
-    }
-  }
-})
-
-function writeSQL (spec) {
-  return {
-    ...spec,
-    data: {
-      name: "heatmap_query",
-      sql: parser.writeSQL(spec.data.sql)
-    }
-  }
-}
+const setTransforms = R.set(transformLense)
+const writeSQL = R.over(sqlLense, parser.writeSQL)
+const getBinTransform = R.compose(
+  R.find(R.propEq("type", "rect_pixel_bin")),
+  R.view(transformLense)
+)
 
 export default function rasterLayerHeatmapMixin (_layer) {
   let vegaSpec = {}
@@ -49,7 +31,8 @@ export default function rasterLayerHeatmapMixin (_layer) {
 
   _layer._genVega = function (width, height, filterExpr) {
     const {x, y, ...binTransform} = getBinTransform(vegaSpec)
-    const transforms = [
+
+    _layer.setVegaSpec(setTransforms([
       {
         type: "filter",
         expr: filterExpr
@@ -65,9 +48,7 @@ export default function rasterLayerHeatmapMixin (_layer) {
           bins: [y.bins[1], height]
         }
       }
-    ]
-
-    _layer.setVegaSpec(setTransforms(transforms))
+    ]))
 
     return writeSQL(_layer.getVegaSpec())
   }

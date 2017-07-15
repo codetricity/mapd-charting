@@ -1,4 +1,5 @@
 import { createParser } from "mapd-data-layer"
+import R from "ramda"
 
 const TABLE = "tweets_nov_feb"
 const MAP_STYLE = "mapbox://styles/mapbox/light-v8"
@@ -6,6 +7,8 @@ const WIDTH = document.documentElement.clientWidth / 1.5
 const HEIGHT =
   Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200
 const UPDATE_INTERVAL = 750
+
+let HeatLayer
 
 const Connector = new MapdCon()
   .protocol("http")
@@ -41,8 +44,7 @@ function rasterChart(cf) {
   var xDim = cf.dimension("lon")
   var yDim = cf.dimension("lat")
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
-  const HeatLayer = dc.rasterLayer("heat")
-  window.HeatLayer = HeatLayer
+  eatLayer = dc.rasterLayer("heat")
 
   HeatLayer.crossfilter(cf).xDim(xDim).yDim(yDim).setVegaSpec(() => ({
     data: {
@@ -137,9 +139,17 @@ function rasterChart(cf) {
 function createCharts(cf) {
   const RasterChart = rasterChart(cf)
   countWidget(cf)
-
   return RasterChart.init().then(() => dc.renderAllAsync())
 }
+
+const makeBinLens = (prop) => R.compose(
+  R.lensPath(["data", "sql", "transform"]),
+  R.lensIndex(1),
+  R.lensPath([prop, "bins"])
+)
+
+const xBinLens = makeBinLens("x")
+const yBinLens = makeBinLens("y")
 
 document.addEventListener("DOMContentLoaded", function init() {
   return connect().then(createCrossfilter).then(createCharts).then(() => {
@@ -161,32 +171,13 @@ document.addEventListener("DOMContentLoaded", function init() {
 
     document.getElementById("xbin").addEventListener("change", function(e) {
       const value = parseInt(e.target.value)
-      const spec = HeatLayer.spec()
-
-      HeatLayer.setVegaSpec(spec => ({
-        ...spec,
-        data: {
-          ...spec.data,
-          sql: {
-            ...spec.data.sql,
-            transform: []
-          }
-        }
-      }))
+      HeatLayer.setVegaSpec(R.over(xBinLens, (bins) => [value, bins[1]]))
       dc.redrawAllAsync()
     })
 
     document.getElementById("ybin").addEventListener("change", function(e) {
       const value = parseInt(e.target.value)
-      const spec = HeatLayer.spec()
-      HeatLayer.spec({
-        x: spec.x,
-        aggregate: spec.aggregate,
-        y: {
-          field: "lat",
-          bins: value
-        }
-      })
+      HeatLayer.setVegaSpec(R.over(yBinLens, (bins) => [value, bins[1]]))
       dc.redrawAllAsync()
     })
   })
