@@ -3,7 +3,6 @@ import rasterLayerPointMixin from "./raster-layer-point-mixin"
 import rasterLayerPolyMixin from "./raster-layer-poly-mixin"
 import rasterLayerHeatmapMixin from "./raster-layer-heatmap-mixin"
 import {createRasterLayerGetterSetter, createVegaAttrMixin, notNull} from "../utils/utils-vega"
-import {parser} from "../utils/utils"
 
 const validLayerTypes = ["points", "polys"]
 
@@ -178,39 +177,24 @@ export default function rasterLayer (layerType) {
       query = group.writeTopQuery(cap, undefined, true)
     } else if (group.type === "group") {
       query = group.writeTopQuery(cap, undefined, false, true)
-    } else if (_layer.spec()) {
-      query = parser.writeSQL({
-        type: "root",
-        source: _layer.crossfilter().getTable()[0],
-        transform: [
-          {
-            type: "filter",
-            expr: _layer.crossfilter().getFilterString()
-          },
-          {
-            type: "rect_pixel_bin",
-            x: {
-              field: _layer.spec().x.field,
-              bins:  [_layer.spec().x.bins, Math.round(chart.width() * chart._getPixelRatio())]
-            },
-            y: {
-              field: _layer.spec().y.field,
-              bins:  [_layer.spec().y.bins, Math.round(chart.height() * chart._getPixelRatio())]
-            },
-            aggregate: _layer.spec().aggregate
-          }
-        ]
-      })
     }
 
     if (!query.length) {
       // throw new Error("Crossfilter group/dimension did not provide a sql query string for layer " + layerName + "." + (groupType.length ? " Group type: " + (group.type || "unknown") + "." : ""))
     }
 
-        // TODO(croot): handle an opacity per layer?
-    const vega = _layer._genVega(chart, layerName, group, query)
-    console.log(vega)
-    return vega
+    if (_layer.type === "heatmap") {
+      const vega = _layer._genVega(
+        Math.round(chart.width() * chart._getPixelRatio()),
+        Math.round(chart.height() * chart._getPixelRatio()),
+        _layer.crossfilter().getFilterString()
+      )
+      return vega
+    } else {
+      const vega = _layer._genVega(chart, layerName, group, query)
+      return vega
+    }
+
   }
 
   _layer.hasPopupColumns = function () {

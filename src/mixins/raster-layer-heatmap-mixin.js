@@ -1,60 +1,75 @@
 import {createRasterLayerGetterSetter} from "../utils/utils-vega"
+import {parser} from "../utils/utils"
 
-export function heatmapVega (state) {
+const getBinTransform = spec =>
+  spec.data.sql.transform.reduce((accum, t) => {
+    if (t.type === "rect_pixel_bin") {
+      accum = t
+    }
+    return accum
+  }, {})
+
+const setTransforms = transform => spec => ({
+  ...spec,
+  data: {
+    name: "heatmap_query",
+    sql: {
+      ...spec.data.sql,
+      transform
+    }
+  }
+})
+
+function writeSQL (spec) {
   return {
-    "data": {
-      "name": "heatmap_query",
-      "sql": state.query
-    },
-    "scales": [
-      {
-        "name": "heat_color",
-        "type": "quantize",
-        "domain": [
-          0, 25
-        ],
-        "range": [ "#0d0887", "#2a0593", "#41049d", "#5601a4", "#6a00a8", "#7e03a8", "#8f0da4", "#a11b9b", "#b12a90", "#bf3984", "#cb4679", "#d6556d", "#e16462", "#ea7457", "#f2844b", "#f89540", "#fca636", "#feba2c", "#fcce25", "#f7e425", "#f0f921" ],
-        "default": "#0d0887",
-        "nullValue": "#0d0887"
-      }
-    ],
-    "mark": {
-      "type": "symbol",
-      "from": {
-        "data": "heatmap_query"
-      },
-      "properties": {
-        "shape": "square",
-        "x": {
-          "field": "x"
-        },
-        "y": {
-          "field": "y"
-        },
-        "width": state.size,
-        "height": state.size,
-        "fillColor": {
-          "scale": "heat_color",
-          "field": "cnt"
-        }
-      }
+    ...spec,
+    data: {
+      name: "heatmap_query",
+      sql: parser.writeSQL(spec.data.sql)
     }
   }
 }
 
 export default function rasterLayerHeatmapMixin (_layer) {
-  _layer.markSize = createRasterLayerGetterSetter(_layer, null)
-  _layer.spec = createRasterLayerGetterSetter(_layer, null)
+  let vegaSpec = {}
+
+  _layer.type = "heatmap"
   _layer.crossfilter = createRasterLayerGetterSetter(_layer, null)
   _layer.xDim = createRasterLayerGetterSetter(_layer, null)
   _layer.yDim = createRasterLayerGetterSetter(_layer, null)
   _layer._mandatoryAttributes([])
 
-  _layer._genVega = function (chart, layerName, group, query) {
-    return heatmapVega({
-      query: query,
-      size: _layer.markSize() || 1,
-    })
+  _layer.setVegaSpec = function (setter) {
+    vegaSpec = setter(vegaSpec)
+  }
+
+  _layer.getVegaSpec = function () {
+    return JSON.parse(JSON.stringify(vegaSpec))
+  }
+
+  _layer._genVega = function (width, height, filterExpr) {
+    const {x, y, ...binTransform} = getBinTransform(vegaSpec)
+    const transforms = [
+      {
+        type: "filter",
+        expr: filterExpr
+      },
+      {
+        ...binTransform,
+        x: {
+          field: x.field,
+          bins: [x.bins[0], width]
+        },
+        y: {
+          field: y.field,
+          bins: [y.bins[1], height]
+        }
+      }
+    ]
+
+    _layer.setVegaSpec(setTransforms(transforms))
+
+    return writeSQL(_layer.getVegaSpec())
   }
 
   return _layer
