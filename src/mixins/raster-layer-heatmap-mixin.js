@@ -11,7 +11,7 @@ export function heatmapVega (state) {
         "name": "heat_color",
         "type": "quantize",
         "domain": [
-          0, 1123049
+          0, 25
         ],
         "range": [ "#0d0887", "#2a0593", "#41049d", "#5601a4", "#6a00a8", "#7e03a8", "#8f0da4", "#a11b9b", "#b12a90", "#bf3984", "#cb4679", "#d6556d", "#e16462", "#ea7457", "#f2844b", "#f89540", "#fca636", "#feba2c", "#fcce25", "#f7e425", "#f0f921" ],
         "default": "#0d0887",
@@ -24,7 +24,7 @@ export function heatmapVega (state) {
         "data": "heatmap_query"
       },
       "properties": {
-        "shape": "hexagon-horiz",
+        "shape": "square",
         "x": {
           "field": "x"
         },

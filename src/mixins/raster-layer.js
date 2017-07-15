@@ -191,11 +191,11 @@ export default function rasterLayer (layerType) {
             type: "rect_pixel_bin",
             x: {
               field: _layer.spec().x.field,
-              bins:  [_layer.spec().x.bins, chart.width()]
+              bins:  [_layer.spec().x.bins, Math.round(chart.width() * chart._getPixelRatio())]
             },
             y: {
               field: _layer.spec().y.field,
-              bins:  [_layer.spec().y.bins, chart.height()]
+              bins:  [_layer.spec().y.bins, Math.round(chart.height() * chart._getPixelRatio())]
             },
             aggregate: _layer.spec().aggregate
           }

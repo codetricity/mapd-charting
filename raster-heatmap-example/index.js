@@ -58,10 +58,11 @@ function rasterChart (cf) {
         field: "lat",
         bins: 25
       },
-      aggregate: "AVG(tweet_count)"
+      aggregate: "COUNT(DISTINCT lang)"
     })
 
   RasterChart
+    .usePixelRatio(true)
     .con(Connector)
     .useLonLat(true)
     .height(HEIGHT)
