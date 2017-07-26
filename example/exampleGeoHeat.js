@@ -44,7 +44,7 @@ function rasterChart(cf) {
   var xDim = cf.dimension("lon")
   var yDim = cf.dimension("lat")
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
-  eatLayer = dc.rasterLayer("heat")
+  HeatLayer = dc.rasterLayer("heat")
 
   HeatLayer.crossfilter(cf).xDim(xDim).yDim(yDim).setVegaSpec(() => ({
     data: {
