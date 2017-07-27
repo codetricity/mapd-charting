@@ -45,7 +45,7 @@ export default function rasterLayerHeatmapMixin (_layer) {
         },
         y: {
           field: y.field,
-          bins: [y.bins[1], height]
+          bins: [y.bins[0], height]
         }
       }
     ]))

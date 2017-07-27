@@ -3,10 +3,17 @@ import R from "ramda"
 
 const TABLE = "tweets_nov_feb"
 const MAP_STYLE = "mapbox://styles/mapbox/light-v8"
+
 const WIDTH = document.documentElement.clientWidth / 1.5
 const HEIGHT =
   Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200
+
 const UPDATE_INTERVAL = 750
+const INITIAL_X_BINS = 50
+const INITIAL_Y_BINS = 50
+
+let GAP_SIZE = 2
+const shapeSize = (bins, size, gap = GAP_SIZE) => size/bins - gap
 
 let HeatLayer
 
@@ -57,11 +64,11 @@ function rasterChart(cf) {
             type: "rect_pixel_bin",
             x: {
               field: "lon",
-              bins: [50, WIDTH]
+              bins: [INITIAL_Y_BINS, WIDTH]
             },
             y: {
               field: "lat",
-              bins: [25, HEIGHT]
+              bins: [INITIAL_Y_BINS, HEIGHT]
             },
             aggregate: "COUNT(DISTINCT lang)"
           }
@@ -113,8 +120,8 @@ function rasterChart(cf) {
         y: {
           field: "y"
         },
-        width: 30,
-        height: 30,
+        width: shapeSize(INITIAL_X_BINS, WIDTH),
+        height: shapeSize(INITIAL_Y_BINS, HEIGHT),
         fillColor: {
           scale: "heat_color",
           field: "cnt"
@@ -151,34 +158,60 @@ const makeBinLens = (prop) => R.compose(
 const xBinLens = makeBinLens("x")
 const yBinLens = makeBinLens("y")
 
-document.addEventListener("DOMContentLoaded", function init() {
-  return connect().then(createCrossfilter).then(createCharts).then(() => {
-    document.getElementById("size").addEventListener("change", function(e) {
-      const value = parseInt(e.target.value)
-      HeatLayer.setVegaSpec(spec => ({
-        ...spec,
-        mark: {
-          ...spec.mark,
-          properties: {
-            ...spec.mark.properties,
-            width: value,
-            height: value
-          }
+function setupListeners () {
+  document.getElementById("size").addEventListener("change", function(e) {
+    const value = parseInt(e.target.value)
+    GAP_SIZE = value
+    HeatLayer.setVegaSpec(spec => ({
+      ...spec,
+      mark: {
+        ...spec.mark,
+        properties: {
+          ...spec.mark.properties,
+          width: shapeSize(spec.data.sql.transform[1].x.bins[0], WIDTH, value),
+          height: shapeSize(spec.data.sql.transform[1].y.bins[0], HEIGHT, value)
         }
-      }))
-      dc.redrawAllAsync()
-    })
-
-    document.getElementById("xbin").addEventListener("change", function(e) {
-      const value = parseInt(e.target.value)
-      HeatLayer.setVegaSpec(R.over(xBinLens, (bins) => [value, bins[1]]))
-      dc.redrawAllAsync()
-    })
-
-    document.getElementById("ybin").addEventListener("change", function(e) {
-      const value = parseInt(e.target.value)
-      HeatLayer.setVegaSpec(R.over(yBinLens, (bins) => [value, bins[1]]))
-      dc.redrawAllAsync()
-    })
+      }
+    }))
+    dc.redrawAllAsync()
   })
+
+  document.getElementById("xbin").addEventListener("change", function(e) {
+    const value = parseInt(e.target.value)
+    HeatLayer.setVegaSpec(R.over(xBinLens, (bins) => [value, bins[1]]))
+    HeatLayer.setVegaSpec(spec => ({
+      ...spec,
+      mark: {
+        ...spec.mark,
+        properties: {
+          ...spec.mark.properties,
+          width: shapeSize(value, WIDTH),
+        }
+      }
+    }))
+    dc.redrawAllAsync()
+  })
+
+  document.getElementById("ybin").addEventListener("change", function(e) {
+    const value = parseInt(e.target.value)
+    HeatLayer.setVegaSpec(R.over(yBinLens, (bins) => [value, bins[1]]))
+    HeatLayer.setVegaSpec(spec => ({
+      ...spec,
+      mark: {
+        ...spec.mark,
+        properties: {
+          ...spec.mark.properties,
+          height: shapeSize(value, HEIGHT),
+        }
+      }
+    }))
+    dc.redrawAllAsync()
+  })
+}
+
+document.addEventListener("DOMContentLoaded", function init() {
+  return connect()
+    .then(createCrossfilter)
+    .then(createCharts)
+    .then(setupListeners)
 })
