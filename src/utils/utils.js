@@ -24,8 +24,8 @@ parser.registerParser({
   const from = sql.from
   const x = transform.x.field
   const y = transform.y.field
-  sql.select.push(`rect_pixel_bin(conv_4326_900913_x(${x}),(SELECT MIN(conv_4326_900913_x(${x})) from ${sql.from} WHERE ${sql.where}), (SELECT MAX(conv_4326_900913_x(${x})) from ${sql.from} WHERE ${sql.where}), ${transform.x.bins[0]}, ${transform.x.bins[1]}) as x`)
-  sql.select.push(`rect_pixel_bin(conv_4326_900913_y(${y}),(SELECT MIN(conv_4326_900913_y(${y})) from ${sql.from} WHERE ${sql.where}), (SELECT MAX(conv_4326_900913_y(${y})) from ${sql.from} WHERE ${sql.where}), ${transform.y.bins[0]}, ${transform.y.bins[1]}) as y`)
+  sql.select.push(`rect_pixel_bin(conv_4326_900913_x(${x}), ${transform.x.domain[0]}, ${transform.x.domain[1]}, ${transform.x.bins[0]}, ${transform.x.bins[1]}) as x`)
+  sql.select.push(`rect_pixel_bin(conv_4326_900913_y(${y}), ${transform.y.domain[0]}, ${transform.y.domain[1]}, ${transform.y.bins[0]}, ${transform.y.bins[1]}) as y`)
   sql.select.push(`${transform.aggregate} as cnt`)
   sql.groupby.push("x")
   sql.groupby.push("y")

@@ -9,10 +9,10 @@ const HEIGHT =
   Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200
 
 const UPDATE_INTERVAL = 750
-const INITIAL_X_BINS = 50
-const INITIAL_Y_BINS = 50
+const INITIAL_X_BINS = 10
+const INITIAL_Y_BINS = 10
 
-let GAP_SIZE = 2
+let GAP_SIZE = 0
 const shapeSize = (bins, size, gap = GAP_SIZE) => size/bins - gap
 
 let HeatLayer
@@ -52,7 +52,7 @@ function rasterChart(cf) {
   var yDim = cf.dimension("lat")
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
   HeatLayer = dc.rasterLayer("heat")
-
+  console.log(INITIAL_X_BINS, WIDTH)
   HeatLayer.crossfilter(cf).xDim(xDim).yDim(yDim).setVegaSpec(() => ({
     data: {
       name: "heatmap_query",
@@ -64,7 +64,7 @@ function rasterChart(cf) {
             type: "rect_pixel_bin",
             x: {
               field: "lon",
-              bins: [INITIAL_Y_BINS, WIDTH]
+              bins: [INITIAL_X_BINS, WIDTH]
             },
             y: {
               field: "lat",
@@ -130,7 +130,7 @@ function rasterChart(cf) {
     }
   }))
 
-  RasterChart.usePixelRatio(true)
+  RasterChart
     .con(Connector)
     .useLonLat(true)
     .height(HEIGHT)

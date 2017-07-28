@@ -94,15 +94,19 @@ describe("rasterLayerHeatmapMixin", () => {
     }))
 
     it("should return JSON", () => {
-      const spec = layer._genVega(100, 100, "lon = 100")
+      const spec = layer._genVega({
+        width: 100,
+        height: 100,
+        filter: "lon = 100",
+        min: [-50, 50],
+        max: [-50, 50],
+        numBinsX: 1000,
+        numBinsY: 500
+      })
       expect(spec.data.sql).to.equal(
-        "SELECT rect_pixel_bin(conv_4326_900913_x(lon)," +
-          "(SELECT MIN(conv_4326_900913_x(lon)) from flights WHERE (lon = 100)), " +
-          "(SELECT MAX(conv_4326_900913_x(lon)) from flights WHERE (lon = 100)), 50, 100) as x, " +
-          "rect_pixel_bin(conv_4326_900913_y(lat)," +
-          "(SELECT MIN(conv_4326_900913_y(lat)) from flights WHERE (lon = 100)), " +
-          "(SELECT MAX(conv_4326_900913_y(lat)) from flights WHERE (lon = 100)), 25, 100) as y, " +
-          "COUNT(DISTINCT lang) as cnt FROM flights WHERE (lon = 100) GROUP BY x, y"
+        "SELECT rect_pixel_bin(conv_4326_900913_x(lon), -50, -50, 1000, 100) as x, "
+        + "rect_pixel_bin(conv_4326_900913_y(lat), 50, 50, 500, 100) as y, "
+        + "COUNT(DISTINCT lang) as cnt FROM flights WHERE (lon = 100) GROUP BY x, y"
       )
     })
   })

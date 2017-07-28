@@ -29,26 +29,39 @@ export default function rasterLayerHeatmapMixin (_layer) {
     return JSON.parse(JSON.stringify(vegaSpec))
   }
 
-  _layer._genVega = function (width, height, filterExpr) {
+  _layer._genVega = function ({width, height, min, max, filter, numBinsX, numBinsY}) {
     const {x, y, ...binTransform} = getBinTransform(vegaSpec)
 
     _layer.setVegaSpec(setTransforms([
       {
         type: "filter",
-        expr: filterExpr
+        expr: filter
       },
       {
         ...binTransform,
         x: {
           field: x.field,
-          bins: [x.bins[0], width]
+          domain: [min[0], max[0]],
+          bins: [numBinsX, width]
         },
         y: {
           field: y.field,
-          bins: [y.bins[0], height]
+          domain: [min[1], max[1]],
+          bins: [numBinsY, height]
         }
       }
     ]))
+    _layer.setVegaSpec(spec => ({
+      ...spec,
+      mark: {
+        ...spec.mark,
+        properties: {
+          ...spec.mark.properties,
+          width: width / numBinsX,
+          height: height / numBinsY
+        }
+      }
+    }))
 
     return writeSQL(_layer.getVegaSpec())
   }
