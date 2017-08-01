@@ -2,6 +2,38 @@ import { expect } from "chai"
 import rasterLayer from "./raster-layer"
 import rasterLayerHeatmapMixin from "./raster-layer-heatmap-mixin"
 
+const spec = {
+  mark: "square",
+  encoding: {
+    x: {
+      type: "quantitative",
+      field: "lon",
+      size: 1000
+    },
+    y: {
+      type: "quantitative",
+      field: "lat",
+      size: 1000
+    },
+    color: {
+      type: "quantize",
+      aggregate: "count",
+      field: "*",
+      scale: {
+        domain: [0, 25],
+        range: [
+          "#0d0887",
+          "#f7e425",
+          "#f0f921"
+        ],
+        default: "#0d0887",
+        nullValue: "#0d0887"
+      }
+    },
+    size: "auto"
+  }
+}
+
 describe("rasterLayerHeatmapMixin", () => {
   it("should have the correct getters/setters", () => {
     const layer = rasterLayer("heat")
@@ -13,101 +45,74 @@ describe("rasterLayerHeatmapMixin", () => {
     expect(layer.yDim()).to.equal(yDim)
   })
 
+  describe("layer state", () => {
+    it("should be able to be set and retrieved", () => {
+      const layer = rasterLayer("heat")
+      layer.setState(spec)
+      expect(layer.getState()).to.not.equal(spec)
+      expect(layer.getState()).to.deep.equal(spec)
+    })
+  })
+
   describe("_genVega", () => {
-    const layer = rasterLayer("heat")
+    it("should transform vega-lite spec (state) to full vega spec", () => {
+      const layer = rasterLayer("heat")
+      layer.setState(spec)
 
-    layer.setVegaSpec(() => ({
-      data: {
-        name: "heatmap_query",
-        sql: {
-          type: "root",
-          source: "flights",
-          transform: [
-            {
-              type: "rect_pixel_bin",
-              x: {
-                field: "lon",
-                bins: [50, 50]
-              },
-              y: {
-                field: "lat",
-                bins: [25, 25]
-              },
-              aggregate: "COUNT(DISTINCT lang)"
-            }
-          ]
-        }
-      },
-      scales: [
-        {
-          name: "heat_color",
-          type: "quantize",
-          domain: [0, 25],
-          range: [
-            "#0d0887",
-            "#2a0593",
-            "#41049d",
-            "#5601a4",
-            "#6a00a8",
-            "#7e03a8",
-            "#8f0da4",
-            "#a11b9b",
-            "#b12a90",
-            "#bf3984",
-            "#cb4679",
-            "#d6556d",
-            "#e16462",
-            "#ea7457",
-            "#f2844b",
-            "#f89540",
-            "#fca636",
-            "#feba2c",
-            "#fcce25",
-            "#f7e425",
-            "#f0f921"
-          ],
-          default: "#0d0887",
-          nullValue: "#0d0887"
-        }
-      ],
-      mark: {
-        type: "symbol",
-        from: {
-          data: "heatmap_query"
-        },
-        properties: {
-          shape: "square",
-          x: {
-            field: "x"
-          },
-          y: {
-            field: "y"
-          },
-          width: 30,
-          height: 30,
-          fillColor: {
-            scale: "heat_color",
-            field: "cnt"
-          }
-        }
-      }
-    }))
-
-    it("should return JSON", () => {
-      const spec = layer._genVega({
+      const vegaSpec = layer._genVega({
+        table: "tweets_nov_feb",
         width: 100,
         height: 100,
         filter: "lon = 100",
         min: [-50, 50],
         max: [-50, 50],
-        numBinsX: 1000,
-        numBinsY: 500
+        neLat: 1000,
+        zoom: 10
       })
-      expect(spec.data.sql).to.equal(
-        "SELECT rect_pixel_bin(conv_4326_900913_x(lon), -50, -50, 1000, 100) as x, "
-        + "rect_pixel_bin(conv_4326_900913_y(lat), 50, 50, 500, 100) as y, "
-        + "COUNT(DISTINCT lang) as cnt FROM flights WHERE (lon = 100) GROUP BY x, y"
-      )
+
+       expect(vegaSpec).to.deep.equal({
+         data: {
+           name: "heatmap_query",
+           sql: "SELECT rect_pixel_bin(conv_4326_900913_x(lon), -50, -50, 100, 100) as x, "
+            + "rect_pixel_bin(conv_4326_900913_y(lat), 50, 50, 100, 100) as y, "
+            + "COUNT(*) as color FROM tweets_nov_feb WHERE (lon = 100) GROUP BY x, y"
+         },
+         scales: [
+           {
+             name: "heat_color",
+             type: "quantize",
+             domain: [0, 25],
+             range: [
+               "#0d0887",
+               "#f7e425",
+               "#f0f921"
+             ],
+             default: "#0d0887",
+             nullValue: "#0d0887"
+           }
+         ],
+         mark: {
+           type: "symbol",
+           from: {
+             data: "heatmap_query"
+           },
+           properties: {
+             shape: "square",
+             x: {
+               field: "x"
+             },
+             y: {
+               field: "y"
+             },
+             width: 1,
+             height: 1,
+             fillColor: {
+               scale: "heat_color",
+               field: "color"
+             }
+           }
+         }
+       })
     })
   })
 })

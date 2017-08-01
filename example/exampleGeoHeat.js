@@ -3,24 +3,18 @@ import R from "ramda"
 
 const TABLE = "tweets_nov_feb"
 const MAP_STYLE = "mapbox://styles/mapbox/light-v8"
-
-const WIDTH = document.documentElement.clientWidth / 1.5
-const HEIGHT =
-  Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200
-
+const WIDTH = document.documentElement.clientWidth - 30
+const HEIGHT = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200
 const UPDATE_INTERVAL = 750
-const INITIAL_X_BINS = 10
-const INITIAL_Y_BINS = 10
 
-let GAP_SIZE = 0
-const shapeSize = (bins, size, gap = GAP_SIZE) => size/bins - gap
+const shapeSize = (bins, size, gap = GAP_SIZE) => size/bins
 
 let HeatLayer
 
 const Connector = new MapdCon()
-  .protocol("http")
-  .host("kali.mapd.com")
-  .port("9092")
+  .protocol("https")
+  .host("metis.mapd.com")
+  .port("443")
   .dbName("mapd")
   .user("mapd")
   .password("HyperInteractive")
@@ -52,83 +46,55 @@ function rasterChart(cf) {
   var yDim = cf.dimension("lat")
   const RasterChart = dc.rasterChart(document.getElementById("heatmap"), true)
   HeatLayer = dc.rasterLayer("heat")
-  console.log(INITIAL_X_BINS, WIDTH)
-  HeatLayer.crossfilter(cf).xDim(xDim).yDim(yDim).setVegaSpec(() => ({
-    data: {
-      name: "heatmap_query",
-      sql: {
-        type: "root",
-        source: TABLE,
-        transform: [
-          {
-            type: "rect_pixel_bin",
-            x: {
-              field: "lon",
-              bins: [INITIAL_X_BINS, WIDTH]
-            },
-            y: {
-              field: "lat",
-              bins: [INITIAL_Y_BINS, HEIGHT]
-            },
-            aggregate: "COUNT(DISTINCT lang)"
-          }
-        ]
-      }
-    },
-    scales: [
-      {
-        name: "heat_color",
-        type: "quantize",
-        domain: [0, 25],
-        range: [
-          "#0d0887",
-          "#2a0593",
-          "#41049d",
-          "#5601a4",
-          "#6a00a8",
-          "#7e03a8",
-          "#8f0da4",
-          "#a11b9b",
-          "#b12a90",
-          "#bf3984",
-          "#cb4679",
-          "#d6556d",
-          "#e16462",
-          "#ea7457",
-          "#f2844b",
-          "#f89540",
-          "#fca636",
-          "#feba2c",
-          "#fcce25",
-          "#f7e425",
-          "#f0f921"
-        ],
-        default: "#0d0887",
-        nullValue: "#0d0887"
-      }
-    ],
-    mark: {
-      type: "symbol",
-      from: {
-        data: "heatmap_query"
+  HeatLayer.crossfilter(cf).xDim(xDim).yDim(yDim).setState({
+    mark: "square",
+    encoding: {
+      x: {
+        type: "quantitative",
+        field: "lon",
+        size: WIDTH
       },
-      properties: {
-        shape: "square",
-        x: {
-          field: "x"
-        },
-        y: {
-          field: "y"
-        },
-        width: shapeSize(INITIAL_X_BINS, WIDTH),
-        height: shapeSize(INITIAL_Y_BINS, HEIGHT),
-        fillColor: {
-          scale: "heat_color",
-          field: "cnt"
+      y: {
+        type: "quantitative",
+        field: "lat",
+        size: HEIGHT
+      },
+      color: {
+        type: "quantize",
+        aggregate: "count",
+        field: "lang",
+        scale: {
+          domain: [0, 25],
+          range: [
+            "#0d0887",
+            "#2a0593",
+            "#41049d",
+            "#5601a4",
+            "#6a00a8",
+            "#7e03a8",
+            "#8f0da4",
+            "#a11b9b",
+            "#b12a90",
+            "#bf3984",
+            "#cb4679",
+            "#d6556d",
+            "#e16462",
+            "#ea7457",
+            "#f2844b",
+            "#f89540",
+            "#fca636",
+            "#feba2c",
+            "#fcce25",
+            "#f7e425",
+            "#f0f921"
+          ],
+          default: "#0d0887",
+          nullValue: "#0d0887"
         }
-      }
+      },
+      size: "auto"
     }
-  }))
+  })
 
   RasterChart
     .con(Connector)
@@ -149,69 +115,8 @@ function createCharts(cf) {
   return RasterChart.init().then(() => dc.renderAllAsync())
 }
 
-const makeBinLens = (prop) => R.compose(
-  R.lensPath(["data", "sql", "transform"]),
-  R.lensIndex(1),
-  R.lensPath([prop, "bins"])
-)
-
-const xBinLens = makeBinLens("x")
-const yBinLens = makeBinLens("y")
-
-function setupListeners () {
-  document.getElementById("size").addEventListener("change", function(e) {
-    const value = parseInt(e.target.value)
-    GAP_SIZE = value
-    HeatLayer.setVegaSpec(spec => ({
-      ...spec,
-      mark: {
-        ...spec.mark,
-        properties: {
-          ...spec.mark.properties,
-          width: shapeSize(spec.data.sql.transform[1].x.bins[0], WIDTH, value),
-          height: shapeSize(spec.data.sql.transform[1].y.bins[0], HEIGHT, value)
-        }
-      }
-    }))
-    dc.redrawAllAsync()
-  })
-
-  document.getElementById("xbin").addEventListener("change", function(e) {
-    const value = parseInt(e.target.value)
-    HeatLayer.setVegaSpec(R.over(xBinLens, (bins) => [value, bins[1]]))
-    HeatLayer.setVegaSpec(spec => ({
-      ...spec,
-      mark: {
-        ...spec.mark,
-        properties: {
-          ...spec.mark.properties,
-          width: shapeSize(value, WIDTH),
-        }
-      }
-    }))
-    dc.redrawAllAsync()
-  })
-
-  document.getElementById("ybin").addEventListener("change", function(e) {
-    const value = parseInt(e.target.value)
-    HeatLayer.setVegaSpec(R.over(yBinLens, (bins) => [value, bins[1]]))
-    HeatLayer.setVegaSpec(spec => ({
-      ...spec,
-      mark: {
-        ...spec.mark,
-        properties: {
-          ...spec.mark.properties,
-          height: shapeSize(value, HEIGHT),
-        }
-      }
-    }))
-    dc.redrawAllAsync()
-  })
-}
-
 document.addEventListener("DOMContentLoaded", function init() {
   return connect()
     .then(createCrossfilter)
     .then(createCharts)
-    .then(setupListeners)
 })

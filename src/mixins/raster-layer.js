@@ -183,24 +183,16 @@ export default function rasterLayer (layerType) {
       // throw new Error("Crossfilter group/dimension did not provide a sql query string for layer " + layerName + "." + (groupType.length ? " Group type: " + (group.type || "unknown") + "." : ""))
     }
 
-    const getPixelSize = (neLat, width, zoom) => {
-      console.log(30 / (40075000 * Math.cos(neLat * Math.PI / 180) / (width * Math.pow(2, zoom))))
-      return Math.max(30 / (40075000 * Math.cos(neLat * Math.PI / 180) / (width * Math.pow(2, zoom))), 1.0)
-    }
-
-    const pixelSize = getPixelSize(chart._maxCoord[1], Math.round(chart.width() * chart._getPixelRatio()), chart.zoom())
-    const numBinsX = Math.round(Math.round(chart.width() * chart._getPixelRatio()) / pixelSize)
-    const numBinsY = Math.round(Math.round(chart.height() * chart._getPixelRatio()) * numBinsX / Math.round(chart.width() * chart._getPixelRatio()))
-
     if (_layer.type === "heatmap") {
       const vega = _layer._genVega({
+        table: _layer.crossfilter().getTable()[0],
         width: Math.round(chart.width() * chart._getPixelRatio()),
         height: Math.round(chart.height() * chart._getPixelRatio()),
         min: chart.conv4326To900913(chart._minCoord),
         max: chart.conv4326To900913(chart._maxCoord),
         filter: _layer.crossfilter().getFilterString(),
-        numBinsX,
-        numBinsY
+        neLat: chart._maxCoord[1],
+        zoom: chart.zoom()
       })
       return vega
     } else {

@@ -17,19 +17,13 @@ import d3 from "d3"
 import {constants} from "../core/core"
 
 export const parser = createParser()
+
 parser.registerParser({
-  meta: "transform",
-  type: "rect_pixel_bin"
-}, (sql, transform) => {
-  const from = sql.from
-  const x = transform.x.field
-  const y = transform.y.field
-  sql.select.push(`rect_pixel_bin(conv_4326_900913_x(${x}), ${transform.x.domain[0]}, ${transform.x.domain[1]}, ${transform.x.bins[0]}, ${transform.x.bins[1]}) as x`)
-  sql.select.push(`rect_pixel_bin(conv_4326_900913_y(${y}), ${transform.y.domain[0]}, ${transform.y.domain[1]}, ${transform.y.bins[0]}, ${transform.y.bins[1]}) as y`)
-  sql.select.push(`${transform.aggregate} as cnt`)
-  sql.groupby.push("x")
-  sql.groupby.push("y")
-  return sql
+  meta: "expression",
+  type: "pixel_bin"
+}, (expression, parser) => {
+  const {shape, field, domain, bin} = expression
+  return `${shape}_pixel_bin(${parser.parseExpression(field)}, ${domain[0]}, ${domain[1]}, ${bin.num}, ${bin.size})`
 })
 
 export const dateFormat = d3.time.format("%m/%d/%Y")
