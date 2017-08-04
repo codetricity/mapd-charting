@@ -84,3 +84,36 @@ The charting library uses [documentation.js](https://github.com/documentationjs/
 ## Contributing
 
 Interested in contributing? We'd love for you to help! Check out [Contributing.MD](.github/CONTRIBUTING.md)
+
+# Troubleshooting Installation
+Community members have written several blogs about installing MapD Charting on different platforms. Their 
+experiences may help you if you encounter any problems.
+
+- [Mac OS X](https://medium.com/@wildcharting/mapd-charting-on-mac-os-x-1346b98ed630)
+- [Linux Ubuntu 17.04](https://medium.com/@wildcharting/installing-mapd-charting-on-linux-701889aa2dad)
+- Windows 10
+    - [Install 1](https://medium.com/@wildcharting/mapd-charting-for-interactive-fun-412711a376f0)
+    - [Install 2](https://medium.com/@wildcharting/mapd-charting-windows-10-install-adventures-and-tips-efc23359e20c)
+
+## Mac OS X
+
+### Working Config 1
+
+- node v6.11
+- Mac OS X 10.12.5 (probably doesn't matter)
+- Xcode and associated tools
+
+Smooth. No problems
+
+## Linux
+
+- node 5.12.0 (did not work with node 7.10.0)
+
+## Windows 10 64 bit
+
+- requires bash to run script `npm run start` (which you probably have installed with git bash)
+- Windows SDK 8.1 (you need this version, not Windows 10 SDK)
+- Node 7.x or below (not node 8, which is the most recent version)
+- Python 2.7x 64 bit (not Python 3.x, the most recent Python)
+- install node-gyp globally (You'll see it in the warnings. `npm install -g node-gyp`)
+- install node-sass manually (`npm install node-sass`)
