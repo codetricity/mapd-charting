@@ -85,7 +85,7 @@ The charting library uses [documentation.js](https://github.com/documentationjs/
 
 Interested in contributing? We'd love for you to help! Check out [Contributing.MD](.github/CONTRIBUTING.md)
 
-# Troubleshooting Installation
+# Installation Dependencies (community experience)
 Community members have written several blogs about installing MapD Charting on different platforms. Their 
 experiences may help you if you encounter any problems.
 
